@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pixelcam: full GPIO connections and schematics</title>
+<style>
+:root{--bg:#eceae4;--text:#1d1e22;--panel:#fff;--line:#c9c6bd;--board:#14161b;--boardtext:#e6e7ea;--dim:#6a6f78;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#17181c;--text:#e6e7ea;--panel:#23252b;--line:#3a3d44;--board:#0b0c0f;--dim:#9aa0aa}}
+:root[data-theme="dark"]{--bg:#17181c;--text:#e6e7ea;--panel:#23252b;--line:#3a3d44;--board:#0b0c0f;--dim:#9aa0aa}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{padding:14px 16px 4px}h1{margin:0 0 4px;font-size:20px}p{margin:0;max-width:78ch}
+.panel{margin:10px 12px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.scroll{overflow-x:auto}
+svg{display:block;min-width:940px;width:100%;height:auto}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;margin-bottom:8px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.35)}
+h2{font-size:16px;margin:0 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{padding:3px 8px 3px 0;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-weight:600}
+code{background:rgba(127,127,127,.18);padding:0 4px;border-radius:4px;font-size:13px}
+.note li{margin:4px 0}
+.call:hover rect.bx{stroke-width:2.5}
+</style>
+</head>
+<body>
+<header>
+  <h1>Pixelcam: every GPIO connection, with the button ladder</h1>
+  <p>Drawn on your Freenove ESP32-S3 WROOM pinout, with the pins in the same order as your picture (antenna end on top). Coloured pins are the ones we use. Grey labels show what the other pins are already used for, which is why they stay free.</p>
+</header>
+
+<section class="panel">
+  <div class="legend" id="legend"></div>
+  <div class="scroll"><svg id="map" viewBox="0 0 1180 700" role="img" aria-label="ESP32-S3 pinout with the Pixelcam connections"></svg></div>
+</section>
+
+<section class="panel">
+  <h2>Module side: where each wire goes</h2>
+  <div class="grid">
+    <div><b>1.8" TFT (8 pins)</b>
+      <table>
+        <tr><td>VCC</td><td>3V3</td></tr><tr><td>GND</td><td>GND</td></tr>
+        <tr><td>CS</td><td>GND (tied low)</td></tr><tr><td>RESET</td><td>3V3 (tied high)</td></tr>
+        <tr><td>A0 (DC)</td><td><b>GPIO41</b></td></tr><tr><td>SDA (MOSI)</td><td><b>GPIO47</b></td></tr>
+        <tr><td>SCK</td><td><b>GPIO21</b></td></tr><tr><td>LED</td><td>3V3</td></tr>
+      </table></div>
+    <div><b>DFPlayer Mini</b>
+      <table>
+        <tr><td>VCC</td><td>5V</td></tr><tr><td>GND</td><td>GND</td></tr>
+        <tr><td>RX</td><td><b>GPIO42</b> through a 1k resistor</td></tr><tr><td>TX</td><td>not connected</td></tr>
+        <tr><td>DAC_L</td><td>100Ω, then jack tip</td></tr><tr><td>DAC_R</td><td>100Ω, then jack ring</td></tr>
+        <tr><td>GND</td><td>also the jack sleeve</td></tr>
+      </table></div>
+    <div><b>Zoom / volume pot (10k)</b>
+      <table>
+        <tr><td>One end</td><td>3V3</td></tr><tr><td>Other end</td><td>GND</td></tr><tr><td>Wiper</td><td><b>GPIO1</b></td></tr>
+      </table>
+      <b style="display:block;margin-top:10px">Next and Select</b>
+      <table>
+        <tr><td>Next</td><td><b>GPIO3</b> to the button, button to GND</td></tr>
+        <tr><td>Select</td><td><b>GPIO0</b> to the button, button to GND</td></tr>
+      </table></div>
+    <div><b>Button ladder on GPIO14</b>
+      <table>
+        <tr><td colspan="2">10k from 3V3 to the GPIO14 node. Each button goes from the node through its resistor to GND.</td></tr>
+        <tr><th>Button</th><th>Resistor</th></tr>
+        <tr><td>Shutter</td><td>0Ω (direct)</td></tr><tr><td>Flash</td><td>1k</td></tr><tr><td>Filter</td><td>3.3k</td></tr>
+        <tr><td>Menu</td><td>10k</td></tr><tr><td>Power</td><td>22k</td></tr><tr><td>Rec</td><td>47k</td></tr>
+      </table></div>
+    <div><b>Flash LED (from GPIO2)</b>
+      <table>
+        <tr><td>GPIO2</td><td>1k to the NPN base</td></tr><tr><td>NPN base</td><td>also 10k to GND (keeps the LED off at boot)</td></tr>
+        <tr><td>NPN emitter</td><td>GND</td></tr><tr><td>NPN collector</td><td>LED cathode</td></tr>
+        <tr><td>LED anode</td><td>47Ω, then 5V</td></tr>
+      </table></div>
+    <div><b>Power</b>
+      <table>
+        <tr><td>2 LiPos in parallel</td><td>charger B+ and B−</td></tr><tr><td>Charger OUT</td><td>slide switch, then boost IN</td></tr>
+        <tr><td>Boost OUT (5.0V)</td><td>5V rail, then the ESP <b>5V</b> pin</td></tr>
+        <tr><td>GND bus</td><td>the one <b>GND</b> pin on the ESP header</td></tr>
+        <tr><td>1000µF</td><td>across 5V and GND near the DFPlayer</td></tr>
+      </table></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Button ladder on GPIO14 (6 buttons on one wire)</h2>
+  <p style="margin-bottom:8px">A 10k resistor pulls the GPIO14 node up to 3V3. Pressing a button connects the node to GND through that button’s resistor, so each button puts a different voltage on GPIO14. The shutter has no resistor, so it pulls the node straight to 0V.</p>
+  <div class="scroll"><svg id="ladder" viewBox="0 0 960 470" role="img" aria-label="Button ladder schematic"></svg></div>
+</section>
+
+<section class="panel">
+  <h2>Flash LED driver (GPIO2)</h2>
+  <div class="scroll"><svg id="flashsvg" viewBox="0 0 700 380" role="img" aria-label="Flash LED driver schematic" style="min-width:640px"></svg></div>
+</section>
+
+<section class="panel">
+  <h2>Every wire, by net</h2>
+  <p style="margin-bottom:8px">A net is one electrical node. Everything listed on the same row is joined together.</p>
+  <table id="nets"></table>
+</section>
+
+<section class="panel">
+  <h2>All resistors (12)</h2>
+  <table>
+    <tr><th>Value</th><th>Qty</th><th>Where</th></tr>
+    <tr><td>10k</td><td>3</td><td>Ladder pull-up (3V3 to GPIO14) · Menu button · NPN base to GND</td></tr>
+    <tr><td>1k</td><td>3</td><td>Flash button · GPIO42 to DFPlayer RX · GPIO2 to NPN base</td></tr>
+    <tr><td>3.3k</td><td>1</td><td>Filter button</td></tr>
+    <tr><td>22k</td><td>1</td><td>Power button</td></tr>
+    <tr><td>47k</td><td>1</td><td>Rec button</td></tr>
+    <tr><td>47Ω</td><td>1</td><td>Flash LED, in series from 5V</td></tr>
+    <tr><td>100Ω</td><td>2</td><td>Headphone left and right, from the DFPlayer</td></tr>
+  </table>
+  <p style="margin-top:8px">The zoom pot is separate (10k linear), and the Shutter button needs no resistor.</p>
+</section>
+
+<section class="panel note">
+  <h2>What the pinout told us (and what I changed because of it)</h2>
+  <ul>
+    <li><b>GPIO48 is the on-board RGB LED</b>, so I no longer use it for the screen. Driving the screen from it would make that LED flicker. The screen’s DC line moved to GPIO41.</li>
+    <li><b>GPIO2 drives the small on-board LED (IO2).</b> That’s why it now runs the flash transistor, and the little LED will blink with the flash. Nothing else uses it, so it can’t get dimmed by a button.</li>
+    <li><b>GPIO0 is the BOOT button pin.</b> Select uses it, so don’t hold Select while you press Reset or plug in power, or the board will enter download mode.</li>
+    <li><b>GPIO3 is a strapping pin</b> (JTAG enable). It is fine for the Next button as long as you don’t hold Next while resetting.</li>
+    <li><b>GPIO38, 39 and 40 are the on-board SD slot</b> and <b>GPIO35 to 37 are the PSRAM</b>. We use none of them, and the camera pins (4 to 18 except 14) stay untouched.</li>
+    <li>GPIO1 and GPIO14 are plain analog pins with nothing else attached. That’s why the pot and the button ladder sit there. GPIO43, 44, 19 and 20 are left alone for the serial and USB ports.</li>
+    <li>The header shows <b>only one GND pin</b>. Run a short, thick wire from it to your GND bus, and don’t rely on it for more than the ESP itself.</li>
+  </ul>
+</section>
+
+<script>
+const TYPES={pwr:['#e63946','Power'],gnd:['#3a3d44','Ground'],rst:['#d6b800','Reset'],cam:['#29a8e0','Camera (leave free)'],sd:['#4fc6c9','SD slot (leave free)'],psram:['#d6407a','PSRAM (leave free)'],strap:['#ff9a2e','Strapping pin'],usb:['#a8d23a','USB'],ser:['#6a9fd8','Serial (USB-UART)'],led:['#8fd3f0','On-board LED'],rgb:['#e0707a','On-board RGB LED (avoid)'],free:['#e9967a','Free GPIO']};
+const L=[['3V3','pwr',''],['EN','rst','reset'],['GPIO4','cam','CAM_SIOD'],['GPIO5','cam','CAM_SIOC'],['GPIO6','cam','CAM_VSYNC'],['GPIO7','cam','CAM_HREF'],['GPIO15','cam','CAM_XCLK'],['GPIO16','cam','CAM_Y9'],['GPIO17','cam','CAM_Y8'],['GPIO18','cam','CAM_Y7'],['GPIO8','cam','CAM_Y4'],['GPIO3','strap','JTAG EN strap'],['GPIO46','strap','LOG strap'],['GPIO9','cam','CAM_Y3'],['GPIO10','cam','CAM_Y5'],['GPIO11','cam','CAM_Y2'],['GPIO12','cam','CAM_Y6'],['GPIO13','cam','CAM_PCLK'],['GPIO14','free','ADC2_CH3'],['5V','pwr','']];
+const R=[['GPIO43','ser','U0TXD'],['GPIO44','ser','U0RXD'],['GPIO1','free','ADC1_CH0'],['GPIO2','led','on-board LED IO2'],['GPIO42','free','MTMS'],['GPIO41','free','MTDI'],['GPIO40','sd','SD_DATA'],['GPIO39','sd','SD_CLK'],['GPIO38','sd','SD_CMD'],['GPIO37','psram','PSRAM'],['GPIO36','psram','PSRAM'],['GPIO35','psram','PSRAM'],['GPIO0','strap','BOOT button'],['GPIO45','strap','VSPI strap'],['GPIO48','rgb','RGB LED'],['GPIO47','free',''],['GPIO21','free',''],['GPIO20','usb','USB D-'],['GPIO19','usb','USB D+'],['GND','gnd','']];
+// the connections we use: side + row index (0 = top)
+const USED={
+ L0:['3V3 rail','TFT VCC, RESET, LED · pot end · ladder pull-up','#ff9f1c'],
+ L11:['NEXT button','GPIO3 → button → GND','#ff6bd6'],
+ L18:['BUTTON LADDER','Shutter, Flash, Filter, Menu, Power, Rec','#d62ad6'],
+ L19:['5V rail (from the boost converter)','DFPlayer VCC, flash LED supply','#e63946'],
+ R2:['ZOOM / VOLUME POT','wiper (ends go to 3V3 and GND)','#f5f5f5'],
+ R3:['FLASH DRIVER','1k → NPN base (IO2 LED blinks too)','#9c6644'],
+ R4:['DFPLAYER RX','through a 1k resistor','#00d1d1'],
+ R5:['TFT  A0 (DC)','screen data/command line','#b980f0'],
+ R12:['SELECT button','GPIO0 → button → GND','#ff9ec7'],
+ R15:['TFT  SDA (MOSI)','screen data','#2dc653'],
+ R16:['TFT  SCK','screen clock','#f4d35e'],
+ R19:['GND bus','every module’s GND joins here','#555b66']
+};
+const svg=document.getElementById('map'),NS='http://www.w3.org/2000/svg',Y0=96,DY=29;
+function el(n,a,txt,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;(p||svg).appendChild(e);return e}
+// board
+el('rect',{x:430,y:Y0-26,width:320,height:20*DY+22,rx:14,fill:'var(--board)',stroke:'#555b66'});
+el('rect',{x:480,y:Y0-60,width:220,height:64,rx:4,fill:'none',stroke:'#555b66','stroke-dasharray':'4 3'});
+el('text',{x:590,y:Y0-26,'text-anchor':'middle','font-size':12,fill:'#9aa0aa'},'antenna end');
+el('rect',{x:500,y:Y0+60,width:180,height:130,rx:4,fill:'#20242c',stroke:'#3a3f4a'});
+el('text',{x:590,y:Y0+130,'text-anchor':'middle','font-size':13,fill:'#9aa0aa'},'ESP32-S3 WROOM-1');
+el('text',{x:590,y:Y0+148,'text-anchor':'middle','font-size':11,fill:'#6a6f78'},'N16R8');
+el('rect',{x:520,y:Y0+250,width:140,height:70,rx:3,fill:'#20242c',stroke:'#3a3f4a'});
+el('text',{x:590,y:Y0+290,'text-anchor':'middle','font-size':11,fill:'#6a6f78'},'camera socket');
+el('text',{x:535,y:Y0+DY*19+14,'text-anchor':'middle','font-size':11,fill:'#6a6f78'},'USB (serial)');
+el('text',{x:645,y:Y0+DY*19+14,'text-anchor':'middle','font-size':11,fill:'#6a6f78'},'USB');
+el('text',{x:590,y:Y0-72,'text-anchor':'middle','font-size':13,fill:'var(--dim)'},'Freenove ESP32-S3 WROOM (top view)');
+function pins(list,side){
+  list.forEach((p,i)=>{
+    const y=Y0+i*DY,x=side==='L'?446:734,col=TYPES[p[1]][0],key=side+i,u=USED[key];
+    el('circle',{cx:x,cy:y,r:u?7:5,fill:u?u[2]:col,stroke:u?'var(--text)':'rgba(0,0,0,.4)','stroke-width':u?2:1});
+    el('text',{x:side==='L'?460:720,y:y+4,'text-anchor':side==='L'?'start':'end','font-size':12,fill:'var(--boardtext)','font-weight':u?700:400},p[0]);
+    const tag=el('text',{x:side==='L'?412:768,y:y+4,'text-anchor':side==='L'?'end':'start','font-size':11,fill:'var(--dim)'},u?'':p[2]);
+    if(u){
+      const g=el('g',{class:'call'});
+      const x1=side==='L'?446-8:734+8,x2=side==='L'?372:808;
+      el('line',{x1:x1,y1:y,x2:x2,y2:y,stroke:u[2],'stroke-width':3},null,g);
+      const bx=side==='L'?16:808,w=side==='L'?356:356;
+      el('rect',{x:bx,y:y-13,width:w,height:26,rx:6,fill:'var(--panel)',stroke:u[2],'stroke-width':1.5,class:'bx'},null,g);
+      el('text',{x:bx+8,y:y-2,'font-size':12,'font-weight':700,fill:'var(--text)'},u[0],g);
+      el('text',{x:bx+8,y:y+10,'font-size':11,fill:'var(--dim)'},u[1],g);
+    }
+  });
+}
+pins(L,'L');pins(R,'R');
+document.getElementById('legend').innerHTML='<span><i style="background:#fff;border:2px solid #1d1e22"></i>Used by the Pixelcam</span>'+Object.entries(TYPES).map(([k,v])=>`<span><i style="background:${v[0]}"></i>${v[1]}</span>`).join('');
+svg.setAttribute('viewBox','0 0 1180 '+(Y0+20*DY+30));
+
+/* ---------- button ladder schematic ---------- */
+(function(){
+  const s=document.getElementById('ladder');const T='var(--text)',D='var(--dim)';
+  const E=(n,a,t)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;s.appendChild(e);return e};
+  const ln=(x1,y1,x2,y2,c,w)=>E('line',{x1,y1,x2,y2,stroke:c||T,'stroke-width':w||2});
+  const tx=(x,y,t,sz,c,anc,wt)=>E('text',{x,y,'font-size':sz||12,fill:c||T,'text-anchor':anc||'middle','font-weight':wt||400},t);
+  const res=(x,y,l)=>{E('rect',{x:x-8,y,width:16,height:44,fill:'var(--panel)',stroke:T,'stroke-width':2});tx(x+14,y+26,l,13,T,'start',700)};
+  // rails
+  ln(30,34,930,34,'#ff9f1c',3);tx(36,26,'3V3',13,'#ff9f1c','start',700);
+  ln(30,400,930,400,'#555b66',3);tx(36,418,'GND',13,D,'start',700);
+  // pull-up and node
+  ln(70,34,70,64,T);res(70,64,'10k');ln(70,108,70,150,T);E('circle',{cx:70,cy:150,r:5,fill:T});
+  ln(70,150,30,150,'#d62ad6',3);tx(30,138,'to GPIO14',12,'#d62ad6','start',700);
+  ln(70,150,880,150,'#d62ad6',3);
+  const B=[['SHUTTER',0,'0Ω (a wire)','0V','under 150 mV'],['FLASH',1,'1k','0.30V','150 to 560 mV'],['FILTER',2,'3.3k','0.82V','560 to 1240 mV'],['MENU',3,'10k','1.65V','1240 to 1960 mV'],['POWER',4,'22k','2.27V','1960 to 2500 mV'],['REC',5,'47k','2.72V','2500 to 2900 mV']];
+  B.forEach((b,i)=>{
+    const x=200+i*135;
+    ln(x,150,x,180,T);E('circle',{cx:x,cy:150,r:4,fill:'#d62ad6'});
+    // push button symbol
+    E('circle',{cx:x,cy:186,r:4,fill:'none',stroke:T,'stroke-width':2});ln(x-14,196,x+14,206,T,2.5);E('circle',{cx:x,cy:216,r:4,fill:'none',stroke:T,'stroke-width':2});
+    tx(x+22,204,'button',11,D,'start');
+    ln(x,220,x,i?248:400,T);
+    if(i){res(x,248,b[2]);ln(x,292,x,400,T)}
+    E('circle',{cx:x,cy:400,r:4,fill:D});
+    tx(x,430,b[0],13,T,'middle',700);
+    tx(x,446,b[3]+' · '+b[4],11,D);
+  });
+  tx(480,468,'Nothing pressed: 3.3V (the ESP reads about 3100 mV), which is above 2900 mV, so no button.',12,D);
+})();
+
+/* ---------- flash driver schematic ---------- */
+(function(){
+  const s=document.getElementById('flashsvg');const T='var(--text)',D='var(--dim)';
+  const E=(n,a,t)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;s.appendChild(e);return e};
+  const ln=(x1,y1,x2,y2,c,w)=>E('line',{x1,y1,x2,y2,stroke:c||T,'stroke-width':w||2});
+  const tx=(x,y,t,sz,c,anc,wt)=>E('text',{x,y,'font-size':sz||12,fill:c||T,'text-anchor':anc||'middle','font-weight':wt||400},t);
+  const res=(x,y,l,hz)=>{ if(hz){E('rect',{x:x,y:y-8,width:44,height:16,fill:'var(--panel)',stroke:T,'stroke-width':2});tx(x+22,y-14,l,12,T,'middle',700)} else {E('rect',{x:x-8,y,width:16,height:44,fill:'var(--panel)',stroke:T,'stroke-width':2});tx(x+14,y+26,l,12,T,'start',700)} };
+  ln(380,30,380,30);ln(300,30,620,30,'#e63946',3);tx(306,22,'5V',13,'#e63946','start',700);
+  ln(60,340,640,340,'#555b66',3);tx(66,358,'GND',13,D,'start',700);
+  // LED branch
+  ln(440,30,440,60);res(440,60,'47Ω');ln(440,104,440,130);
+  E('polygon',{points:'428,130 452,130 440,156',fill:'none',stroke:T,'stroke-width':2});ln(428,160,452,160,T,2.5);tx(480,148,'white LED',12,D,'start');tx(466,128,'anode',11,D,'start');tx(466,176,'cathode',11,D,'start');
+  ln(440,160,440,190);
+  // transistor
+  E('circle',{cx:380,cy:240,r:42,fill:'none',stroke:T,'stroke-width':2});
+  ln(368,214,368,266,T,3);ln(368,230,440,190);ln(368,250,440,290);
+  tx(450,232,'collector',11,D,'start');tx(450,300,'emitter',11,D,'start');tx(312,286,'NPN',12,D,'start',700);tx(312,300,'2N2222 / BC547',11,D,'start');
+  ln(440,190,440,190);ln(440,290,440,340);E('circle',{cx:440,cy:340,r:4,fill:D});
+  // base network
+  ln(368,240,300,240);ln(300,240,300,240);
+  res(210,240,'1k',true);ln(254,240,300,240);ln(300,240,368,240);
+  ln(60,240,210,240,'#9c6644',3);tx(60,226,'GPIO2',13,'#9c6644','start',700);
+  E('circle',{cx:300,cy:240,r:4,fill:T});ln(300,240,300,270);res(300,270,'10k');ln(300,314,300,340);E('circle',{cx:300,cy:340,r:4,fill:D});
+  tx(150,300,'the 10k keeps the LED off',11,D,'middle');tx(150,314,'while the ESP boots',11,D,'middle');
+})();
+
+/* ---------- every wire, by net ---------- */
+const NETS=[
+['3V3',['ESP 3V3 pin','TFT VCC','TFT RESET','TFT LED','Zoom pot end A','Ladder 10k pull-up (top)'],'#ff9f1c'],
+['5V',['Boost converter OUT+ (set to 5.0V)','ESP 5V pin','DFPlayer VCC','Flash LED branch: 47Ω','1000µF capacitor +'],'#e63946'],
+['GND',['ESP GND pin (the only one on the header)','Boost OUT− and charger OUT−','TFT GND and TFT CS','DFPlayer GND','Headphone jack sleeve','Zoom pot end B','Next and Select button legs','Ladder: every branch bottom, and the Shutter button','NPN emitter','10k from the NPN base','1000µF capacitor −'],'#555b66'],
+['GPIO1',['Zoom pot wiper'],'#f5f5f5'],
+['GPIO2',['1k to the NPN base (the on-board IO2 LED lights with the flash)'],'#9c6644'],
+['GPIO3',['Next button, other leg to GND'],'#ff6bd6'],
+['GPIO0',['Select button, other leg to GND (also the BOOT pin)'],'#ff9ec7'],
+['GPIO14',['Ladder node: 10k up to 3V3, six branches to GND'],'#d62ad6'],
+['GPIO21',['TFT SCK'],'#f4d35e'],
+['GPIO41',['TFT A0 (DC)'],'#b980f0'],
+['GPIO42',['1k, then DFPlayer RX (DFPlayer TX is not connected)'],'#00d1d1'],
+['GPIO47',['TFT SDA (MOSI)'],'#2dc653'],
+['Audio out',['DFPlayer DAC_L, 100Ω, jack tip','DFPlayer DAC_R, 100Ω, jack ring'],'#9aa0aa'],
+['Battery chain',['LiPo 1 and LiPo 2 in parallel (+ to +, − to −), checked at the same voltage first','Charger B+ and B− to the batteries','Charger OUT+ to the slide switch, then boost IN+','Charger OUT− to boost IN−'],'#e63946'],
+['Flash LED',['5V, 47Ω, LED anode','LED cathode to the NPN collector'],'#9c6644']
+];
+document.getElementById('nets').innerHTML='<tr><th>Net</th><th>Connected together</th></tr>'+NETS.map(n=>`<tr><td style="white-space:nowrap"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${n[2]};margin-right:6px;border:1px solid rgba(0,0,0,.35)"></i><b>${n[0]}</b></td><td>${n[1].join('<br>')}</td></tr>`).join('');
+</script>
+</body>
+</html>
